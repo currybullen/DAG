@@ -1,3 +1,5 @@
+//TODO Implement the vertex and edge functions.
+
 import java.util.ArrayList;
 
 /**
@@ -8,7 +10,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
     private EdgeFunction<T> edgeFunction;
     private ArrayList<Vertex<T>> vertices;
     private ArrayList<Edge<T>> edges;
-    private boolean isSorted;
+    private boolean sorted;
 
     /**
      * Constructs a directed acyclic graph.
@@ -22,7 +24,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
         this.edgeFunction = edgeFunction;
         vertices = new ArrayList<Vertex<T>>();
         edges = new ArrayList<Edge<T>>();
-        isSorted = true;
+        sorted = true;
     }
 
     /**
@@ -31,7 +33,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
      * @return True if the ArrayList is sorted, false if not.
      */
     public boolean isSorted() {
-        return isSorted;
+        return sorted;
     }
 
     /**
@@ -68,7 +70,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
             edges.add(edge);
             edge.getOrigin().addOutgoingEdge(edge);
             edge.getDestination().addIncomingEdge(edge);
-            isSorted = false;
+            sorted = false;
             return edge;
         }
     }
@@ -135,7 +137,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
         vertices = orderedList;
 
         /*The vertices are now topologically sorted.*/
-        isSorted = true;
+        sorted = true;
     }
 
     /**
@@ -156,32 +158,67 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
         return originVertices;
     }
 
-    //TODO Fix the algorithm.
-    public T findLongestPath(Vertex<T> start, Vertex<T> finish) {
+    /**
+     * Finds the longest path between two vertices in the graph.
+     * @param start the vertex where the path begins.
+     * @param goal the vertex where the path ends.
+     * @return the weight of the longest path if it exists, if not null is
+     * returned.
+     */
+    public T findLongestPath(Vertex<T> start, Vertex<T> goal) {
+
+        /*Initially set the return weight to null.*/
         T returnWeight = null;
 
-        if (start == finish) {
-            returnWeight = finish.getWeight();
+        /*If we are already at the goal, return the weight of the goal.*/
+        if (start == goal) {
+            returnWeight = goal.getWeight();
         } else {
+
+            /*Set the highest found weight between the start and the goal to
+            * null.*/
             T highestWeight = null;
 
+            /*For all the outgoing edges of the current vertex, do the
+            following: */
             for (Edge<T> edge : start.getOutgoingEdges()) {
+
+                /*Pick out the destination of the edge.*/
                 Vertex<T> destination = edge.getDestination();
-                if (vertices.indexOf(destination) > vertices.indexOf(finish))
+
+                /*If the index of the destination vertex is greater than the
+                * index of our goal vertex, skip over it as there will be
+                * no path to the goal originating from it.*/
+                if (vertices.indexOf(destination) > vertices.indexOf(goal))
                     continue;
-                T weight = findLongestPath(destination, finish);
+
+                /*Make a recursive call to this function using the new vertex
+                * as the start but retaining the original goal.*/
+                T weight = findLongestPath(destination, goal);
+
+                /*If there were no valid paths found in the next vertex,
+                * dismiss it.*/
                 if (weight == null)
                     continue;
+
+                /*Add the weight of the edge leading to the next vertex to
+                * the already returned value.*/
+                weight = weight.sum(edge.getWeight());
+
+                /*If no weights have been recorded, set this one as the
+                * highest one.*/
                 if (highestWeight == null) {
                     highestWeight = weight;
-                    returnWeight = weight.sum(edgeFunction.calculateWeight(
-                            edge.getWeight())).sum(vertexFunction.
-                            calculateWeight(start.getWeight()));
-                } else if (highestWeight.compareTo(weight) > 0) {
+
+                    /*Set the return weight to the weight of the returned
+                    * path plus the weight of this vertex.*/
+                    returnWeight = highestWeight.sum(start.getWeight());
+
+                    /*If other weights have previously been recorded and this
+                    * new one is the biggest one, replace the old.*/
+                } else if (highestWeight.compareTo(weight) < 0) {
                     highestWeight = weight;
-                    returnWeight = weight.sum(edgeFunction.calculateWeight(
-                            edge.getWeight())).sum(vertexFunction.
-                            calculateWeight(start.getWeight()));
+                    returnWeight = highestWeight.sum(start.getWeight());
                 }
             }
         }

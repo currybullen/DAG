@@ -4,7 +4,7 @@ import java.util.ArrayList;
  * A class representing a vertex.
  * @param <T> the type of weight to be used in the vertex.
  */
-public class Vertex<T extends Comparable & Weight> {
+public class Vertex<T extends Comparable<T> & Weight<T>> {
     private int identifier;
     private T weight;
     private ArrayList<Edge<T>> incomingEdges;
@@ -13,7 +13,7 @@ public class Vertex<T extends Comparable & Weight> {
 
     /**
      * Constructs a vertex with the specified weight.
-     * @param weight
+     * @param weight the specified weight.
      */
     public Vertex(T weight) {
         this.weight = weight;

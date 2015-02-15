@@ -2,7 +2,7 @@
  * A class representing an edge of the graph.
  * @param <T> the type to be used for the weight of the edge.
  */
-public class Edge<T extends Comparable & Weight> {
+public class Edge<T extends Comparable<T> & Weight<T>> {
     private Vertex<T> origin;
     private Vertex<T> destination;
     private T weight;

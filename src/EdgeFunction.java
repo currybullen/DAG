@@ -5,5 +5,11 @@
  * @param <T> the type of the weight.
  */
 public interface EdgeFunction<T> {
+
+    /**
+     * A function that should return the evaluated weight of a vertex.
+     * @param weight the weight of the vertex.
+     * @return the evaluated weight of the vertex.
+     */
     public T calculateWeight(T weight);
 }

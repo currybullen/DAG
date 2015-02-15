@@ -14,12 +14,16 @@ public class Main {
         Vertex<WrappedInteger> b = dag.addVertex(new WrappedInteger(9));
         Vertex<WrappedInteger> c = dag.addVertex(new WrappedInteger(11));
         Vertex<WrappedInteger> d = dag.addVertex(new WrappedInteger(9));
+        Vertex<WrappedInteger> e = dag.addVertex(new WrappedInteger(4));
+        Vertex<WrappedInteger> f = dag.addVertex(new WrappedInteger(1));
 
         dag.addEdge(a, b, new WrappedInteger(13));
         dag.addEdge(a, c, new WrappedInteger(2));
         dag.addEdge(a, d, new WrappedInteger(17));
         dag.addEdge(c, b, new WrappedInteger(19));
         dag.addEdge(d, b, new WrappedInteger(11));
+        dag.addEdge(c, e, new WrappedInteger(7));
+        dag.addEdge(f, a, new WrappedInteger(1));
 
         if (!dag.isSorted()) {
             dag.orderVertices();
