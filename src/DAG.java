@@ -1,27 +1,17 @@
-//TODO Implement the vertex and edge functions.
-
 import java.util.ArrayList;
 
 /**
  * A class representing a directed acyclic graph.
  */
 public class DAG<T extends Comparable<T> & Weight<T>> {
-    private VertexFunction<T> vertexFunction;
-    private EdgeFunction<T> edgeFunction;
     private ArrayList<Vertex<T>> vertices;
     private ArrayList<Edge<T>> edges;
     private boolean sorted;
 
     /**
      * Constructs a directed acyclic graph.
-     * @param vertexFunction a class used to evaluate the weight of the vertices
-     *                       in the graph.
-     * @param edgeFunction a class used to evaluate the weight of the edges in
-     *                     the graph.
      */
-    public DAG(VertexFunction<T> vertexFunction, EdgeFunction<T> edgeFunction) {
-        this.vertexFunction = vertexFunction;
-        this.edgeFunction = edgeFunction;
+    public DAG() {
         vertices = new ArrayList<Vertex<T>>();
         edges = new ArrayList<Edge<T>>();
         sorted = true;
@@ -30,7 +20,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
     /**
      * Checks if the ArrayList containing the vertices is currently sorted
      * topologically.
-     * @return True if the ArrayList is sorted, false if not.
+     * @return true if the ArrayList is sorted, false if not.
      */
     public boolean isSorted() {
         return sorted;
@@ -96,7 +86,7 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
      * Orders the ArrayList containing the vertices of the graph in a
      * topological order.
      */
-    public void orderVertices() {
+    public void orderTopological() {
 
         /*Retrieve all the vertices of the graph which do not have any incoming
         * edges.*/
@@ -162,17 +152,22 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
      * Finds the longest path between two vertices in the graph.
      * @param start the vertex where the path begins.
      * @param goal the vertex where the path ends.
+     * @param vertexFunction the function to evaluate the weight of the
+     *                       vertices.
+     * @param edgeFunction the function to evaluate the weight of the edges.
      * @return the weight of the longest path if it exists, if not null is
      * returned.
      */
-    public T findLongestPath(Vertex<T> start, Vertex<T> goal) {
+    public T findLongestPath(Vertex<T> start, Vertex<T> goal,
+                             VertexFunction<T> vertexFunction,
+                             EdgeFunction<T> edgeFunction) {
 
         /*Initially set the return weight to null.*/
         T returnWeight = null;
 
         /*If we are already at the goal, return the weight of the goal.*/
         if (start == goal) {
-            returnWeight = goal.getWeight();
+            returnWeight = vertexFunction.calculateWeight(goal.getWeight());
         } else {
 
             /*Set the highest found weight between the start and the goal to
@@ -188,13 +183,16 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
 
                 /*If the index of the destination vertex is greater than the
                 * index of our goal vertex, skip over it as there will be
-                * no path to the goal originating from it.*/
-                if (vertices.indexOf(destination) > vertices.indexOf(goal))
+                * no path to the goal originating from it. This assumes
+                * the list of vertices is topologically sorted.*/
+                if (sorted && vertices.indexOf(destination) >
+                        vertices.indexOf(goal))
                     continue;
 
                 /*Make a recursive call to this function using the new vertex
                 * as the start but retaining the original goal.*/
-                T weight = findLongestPath(destination, goal);
+                T weight = findLongestPath(destination, goal,
+                        vertexFunction, edgeFunction);
 
                 /*If there were no valid paths found in the next vertex,
                 * dismiss it.*/
@@ -203,7 +201,8 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
 
                 /*Add the weight of the edge leading to the next vertex to
                 * the already returned value.*/
-                weight = weight.sum(edge.getWeight());
+                 weight = weight.sum(edgeFunction.calculateWeight(
+                         edge.getWeight()));
 
                 /*If no weights have been recorded, set this one as the
                 * highest one.*/
@@ -212,13 +211,15 @@ public class DAG<T extends Comparable<T> & Weight<T>> {
 
                     /*Set the return weight to the weight of the returned
                     * path plus the weight of this vertex.*/
-                    returnWeight = highestWeight.sum(start.getWeight());
+                    returnWeight = highestWeight.sum(vertexFunction.
+                            calculateWeight(start.getWeight()));
 
                     /*If other weights have previously been recorded and this
                     * new one is the biggest one, replace the old.*/
                 } else if (highestWeight.compareTo(weight) < 0) {
                     highestWeight = weight;
-                    returnWeight = highestWeight.sum(start.getWeight());
+                    returnWeight = highestWeight.sum(vertexFunction.
+                            calculateWeight(start.getWeight()));
                 }
             }
         }
